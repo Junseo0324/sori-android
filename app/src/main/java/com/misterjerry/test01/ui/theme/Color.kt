@@ -21,3 +21,9 @@ val SafeColor = Color(0xFF81C784) // Green for safe sounds
 
 val TextPrimary = Color(0xFFFFFFFF)
 val TextSecondary = Color(0xFFB0B0B0)
+
+// Light Theme Colors
+val LightBackground = Color(0xFFFFFFFF)
+val LightSurface = Color(0xFFF5F5F5)
+val LightTextPrimary = Color(0xFF000000)
+val LightTextSecondary = Color(0xFF666666)

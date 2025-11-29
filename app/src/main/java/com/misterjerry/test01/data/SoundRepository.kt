@@ -28,7 +28,7 @@ class SoundRepository {
                 events.add(
                     SoundEvent(
                         id = System.currentTimeMillis(),
-                        name = if (Random.nextBoolean()) "Siren" else "Car Horn",
+                        name = if (Random.nextBoolean()) "사이렌" else "자동차 경적",
                         direction = Random.nextFloat() * 180 - 90,
                         distance = Random.nextFloat() * 10 + 1,
                         urgency = Urgency.HIGH
@@ -41,7 +41,7 @@ class SoundRepository {
                 events.add(
                     SoundEvent(
                         id = System.currentTimeMillis() + 1,
-                        name = if (Random.nextBoolean()) "Doorbell" else "Dog Barking",
+                        name = if (Random.nextBoolean()) "초인종" else "개 짖는 소리",
                         direction = Random.nextFloat() * 180 - 90,
                         distance = Random.nextFloat() * 5 + 1,
                         urgency = Urgency.MEDIUM

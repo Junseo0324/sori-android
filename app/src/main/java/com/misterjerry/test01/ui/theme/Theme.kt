@@ -25,12 +25,23 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = TextPrimary,
 )
 
-// We want to force Dark Theme for this app to match the premium aesthetic
-private val LightColorScheme = DarkColorScheme
+// We want to force Light Theme for this app as per user request
+private val LightColorScheme = lightColorScheme(
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40,
+    background = LightBackground,
+    surface = LightSurface,
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = LightTextPrimary,
+    onSurface = LightTextPrimary,
+)
 
 @Composable
 fun Test01Theme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false, // Force Light Theme
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false, // Disable dynamic color to enforce our palette
     content: @Composable () -> Unit
