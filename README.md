@@ -1,3 +1,13 @@
+# UI
+
+### 기획서상 UI
+<img width="1786" height="915" alt="UI-" src="https://github.com/user-attachments/assets/4463c7c5-44e6-4e92-a8e7-8347a0df9620" />
+
+### 실제구현 UI
+<img width="8234" height="2523" alt="Component 1" src="https://github.com/user-attachments/assets/7f69c0e7-57a4-420c-bf94-2a4a49a2673c" />
+
+***
+
 # 소리 비서 : Sori (Sound Assistant)
 
 청각 장애인을 위한 소리 시각화 및 음성 인식 보조 애플리케이션입니다.
