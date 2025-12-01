@@ -245,7 +245,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private suspend fun analyzeEmotionWithGpt(text: String): String {
         return try {
-            val prompt = "다음 텍스트의 감정을 분석해서 '긍정', '부정', '중립', '놀람', '슬픔', '공포', '걱정' 중 하나로만 대답해줘. 특히 '괜찮아?'와 같이 상대방을 걱정하는 질문은 '걱정'으로 분류해줘. 텍스트: $text"
+            val prompt = """
+                다음 텍스트의 감정을 분석해서 '긍정', '부정', '중립', '놀람', '슬픔', '공포', '걱정' 중 하나로만 대답해줘.
+                각 감정의 기준은 다음과 같아:
+                - 긍정: 기쁨, 행복, 동의, 칭찬, 감사 (예: "정말 좋아", "고마워")
+                - 부정: 화남, 짜증, 비판, 거절, 불만 (예: "싫어", "그만해")
+                - 놀람: 충격, 믿기 힘듦, 예상치 못한 상황 (예: "정말?", "헐")
+                - 슬픔: 후회, 실망, 비탄, 우울 (예: "너무 슬퍼", "아쉬워")
+                - 공포: 무서움, 위협, 다급함 (예: "도와줘", "무서워")
+                - 걱정: 불안, 근심, 상대방의 안부를 묻거나 염려함 (예: "괜찮아?", "조심해")
+                - 중립: 감정이 드러나지 않는 사실 전달, 단순 질문 (예: "지금 몇 시야?", "밥 먹었어")
+
+                텍스트: $text
+            """.trimIndent()
             val request = com.misterjerry.test01.data.api.ChatRequest(
                 messages = listOf(
                     com.misterjerry.test01.data.api.Message(role = "user", content = prompt)
