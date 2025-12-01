@@ -1,6 +1,8 @@
 package com.misterjerry.test01.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import com.misterjerry.test01.R
@@ -137,17 +139,20 @@ fun EnvironmentalSoundScreen(viewModel: MainViewModel = viewModel()) {
                 )
             }
 
-            SafetySection(soundEvents = uiState.soundEvents)
+            SafetySection(
+                soundEvents = uiState.soundEvents,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
 
 @Composable
-fun SafetySection(soundEvents: List<SoundEvent>) {
+fun SafetySection(soundEvents: List<SoundEvent>, modifier: Modifier = Modifier) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -164,9 +169,13 @@ fun SafetySection(soundEvents: List<SoundEvent>) {
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             } else {
-                soundEvents.forEach { event ->
-                    SoundEventItem(event)
-                    Spacer(modifier = Modifier.height(8.dp))
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(soundEvents) { event ->
+                        SoundEventItem(event)
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
         }
@@ -212,11 +221,34 @@ fun SoundEventItem(event: SoundEvent) {
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Text(
-                text = "${"%.1f".format(event.distance)}m 거리",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "${"%.1f".format(event.distance)}m 거리",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary
+                )
+                Text(
+                    text = formatTimeAgo(event.id),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary
+                )
+            }
         }
+    }
+}
+
+fun formatTimeAgo(timestamp: Long): String {
+    val diff = System.currentTimeMillis() - timestamp
+    val seconds = diff / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+
+    return when {
+        seconds < 60 -> "방금 전"
+        minutes < 60 -> "${minutes}분 전"
+        else -> "${hours}시간 전"
     }
 }
