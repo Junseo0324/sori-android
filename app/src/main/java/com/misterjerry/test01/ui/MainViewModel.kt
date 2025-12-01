@@ -68,14 +68,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun handleSoundClassification(label: String, direction: Float) {
         val (koreanLabel, urgency) = when (label) {
+            // Safety (High Urgency)
+            "Siren", "Ambulance (siren)", "Fire engine, fire truck (siren)" -> "사이렌" to Urgency.HIGH
+            "Car horn, honking" -> "자동차 경적" to Urgency.HIGH
+            "Baby cry, infant cry" -> "아기 울음소리" to Urgency.HIGH
+            "Smoke detector, smoke alarm" -> "화재 경보기" to Urgency.HIGH
+            "Glass" -> "유리 깨지는 소리" to Urgency.HIGH
+            "Scream" -> "비명 소리" to Urgency.HIGH
+
+            // Alerts / Communication (Medium Urgency)
+            "Doorbell" -> "초인종 소리" to Urgency.MEDIUM
+            "Telephone", "Ringtone" -> "전화 벨소리" to Urgency.MEDIUM
+            "Alarm" -> "알람 소리" to Urgency.MEDIUM
+            "Dog", "Bark" -> "개 짖는 소리" to Urgency.MEDIUM
+
+            // Daily Life (Low Urgency)
             "Clapping", "Hands" -> "박수 소리" to Urgency.LOW
             "Knock" -> "노크 소리" to Urgency.LOW
             "Finger snapping" -> "핑거 스냅" to Urgency.LOW
-            "Siren", "Ambulance (siren)", "Fire engine, fire truck (siren)" -> "사이렌" to Urgency.HIGH
-            "Car horn, honking" -> "자동차 경적" to Urgency.HIGH
-            "Dog", "Bark" -> "개 짖는 소리" to Urgency.MEDIUM
-            "Baby cry, infant cry" -> "아기 울음소리" to Urgency.HIGH
             "Speech" -> "말소리" to Urgency.LOW
+            "Water tap, faucet" -> "물 틀어놓은 소리" to Urgency.LOW
+            "Toilet flush" -> "변기 물 내리는 소리" to Urgency.LOW
+            "Microwave oven" -> "전자레인지 소리" to Urgency.LOW
+            "Cat", "Meow" -> "고양이 울음소리" to Urgency.LOW
+
             else -> return // Ignore other sounds for now
         }
 
