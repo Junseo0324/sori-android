@@ -41,6 +41,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.misterjerry.test01.data.SoundEvent
 import com.misterjerry.test01.data.Urgency
 import com.misterjerry.test01.ui.theme.ErrorColor
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Switch
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.misterjerry.test01.ui.theme.LightTextPrimary
 import com.misterjerry.test01.ui.theme.SafeColor
 import com.misterjerry.test01.ui.theme.SurfaceColor
@@ -139,27 +146,131 @@ fun EnvironmentalSoundScreen(viewModel: MainViewModel = viewModel()) {
                 )
             }
 
+            var showSettingsDialog by remember { mutableStateOf(false) }
+
+            if (showSettingsDialog) {
+                SoundSettingsDialog(
+                    currentSettings = uiState.soundSettings,
+                    onDismiss = { showSettingsDialog = false },
+                    onConfirm = { newSettings ->
+                        viewModel.updateSoundSettings(newSettings)
+                        showSettingsDialog = false
+                    }
+                )
+            }
+
             SafetySection(
                 soundEvents = uiState.soundEvents,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                onSettingsClick = { showSettingsDialog = true },
+                onClearClick = { viewModel.clearSoundEvents() }
             )
         }
     }
 }
 
 @Composable
-fun SafetySection(soundEvents: List<SoundEvent>, modifier: Modifier = Modifier) {
+fun SoundSettingsDialog(
+    currentSettings: SoundSettings,
+    onDismiss: () -> Unit,
+    onConfirm: (SoundSettings) -> Unit
+) {
+    var highEnabled by remember { mutableStateOf(currentSettings.isHighUrgencyEnabled) }
+    var mediumEnabled by remember { mutableStateOf(currentSettings.isMediumUrgencyEnabled) }
+    var lowEnabled by remember { mutableStateOf(currentSettings.isLowUrgencyEnabled) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "알림 설정") },
+        text = {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "위험 (HIGH) 알림")
+                    Switch(checked = highEnabled, onCheckedChange = { highEnabled = it })
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "주의 (MEDIUM) 알림")
+                    Switch(checked = mediumEnabled, onCheckedChange = { mediumEnabled = it })
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "일상 (LOW) 알림")
+                    Switch(checked = lowEnabled, onCheckedChange = { lowEnabled = it })
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onConfirm(
+                        SoundSettings(
+                            isHighUrgencyEnabled = highEnabled,
+                            isMediumUrgencyEnabled = mediumEnabled,
+                            isLowUrgencyEnabled = lowEnabled
+                        )
+                    )
+                }
+            ) {
+                Text("저장")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("취소")
+            }
+        }
+    )
+}
+
+@Composable
+fun SafetySection(
+    soundEvents: List<SoundEvent>,
+    modifier: Modifier = Modifier,
+    onSettingsClick: () -> Unit,
+    onClearClick: () -> Unit
+) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(16.dp),
         modifier = modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "감지된 소리",
-                style = MaterialTheme.typography.titleLarge,
-                color = LightTextPrimary
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "감지된 소리",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = LightTextPrimary
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = onClearClick) {
+                        Text(text = "초기화", color = TextSecondary)
+                    }
+                    androidx.compose.material3.IconButton(onClick = onSettingsClick) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_settings_custom),
+                            contentDescription = "Settings",
+                            tint = Color.Unspecified
+                        )
+                    }
+                }
+            }
             Spacer(modifier = Modifier.height(12.dp))
 
             if (soundEvents.isEmpty()) {

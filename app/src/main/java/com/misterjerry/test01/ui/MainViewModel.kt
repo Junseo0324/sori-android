@@ -25,7 +25,14 @@ import kotlinx.coroutines.launch
 data class MainUiState(
     val soundEvents: List<SoundEvent> = emptyList(),
     val conversationHistory: List<ConversationItem> = emptyList(),
-    val isListening: Boolean = false
+    val isListening: Boolean = false,
+    val soundSettings: SoundSettings = SoundSettings()
+)
+
+data class SoundSettings(
+    val isHighUrgencyEnabled: Boolean = true,
+    val isMediumUrgencyEnabled: Boolean = true,
+    val isLowUrgencyEnabled: Boolean = true
 )
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -35,6 +42,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _conversationHistory = MutableStateFlow<List<ConversationItem>>(emptyList())
     private val _isListening = MutableStateFlow(false)
+    private val _soundSettings = MutableStateFlow(SoundSettings())
 
     private val speechRecognizer: SpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(application)
     private val audioClassifierHelper = AudioClassifierHelper(application)
@@ -82,7 +90,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             urgency = urgency
         )
 
-        vibrationHelper.vibrate(urgency)
+        val settings = _soundSettings.value
+        val shouldVibrate = when (urgency) {
+            Urgency.HIGH -> settings.isHighUrgencyEnabled
+            Urgency.MEDIUM -> settings.isMediumUrgencyEnabled
+            Urgency.LOW -> settings.isLowUrgencyEnabled
+        }
+
+        if (shouldVibrate) {
+            vibrationHelper.vibrate(urgency)
+        }
 
         // Update sound events list (keep events within last 1 hour)
         val currentEvents = uiState.value.soundEvents
@@ -140,12 +157,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val uiState: StateFlow<MainUiState> = combine(
         _soundEventsFlow,
         _conversationHistory,
-        _isListening
-    ) { sounds, history, isListening ->
+        _isListening,
+        _soundSettings,
+    ) { sounds, history, isListening, settings ->
         MainUiState(
             soundEvents = sounds,
             conversationHistory = history,
-            isListening = isListening
+            isListening = isListening,
+            soundSettings = settings
         )
     }.stateIn(
         scope = viewModelScope,
@@ -211,6 +230,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             e.printStackTrace()
             "에러: ${e.message}"
         }
+    }
+
+    fun updateSoundSettings(newSettings: SoundSettings) {
+        _soundSettings.value = newSettings
+    }
+
+    fun clearSoundEvents() {
+        _soundEventsFlow.value = emptyList()
     }
 
     override fun onCleared() {
