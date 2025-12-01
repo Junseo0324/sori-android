@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.misterjerry.test01.data.SoundSettings
+import com.misterjerry.test01.data.VibrationPattern
 
 data class MainUiState(
     val soundEvents: List<SoundEvent> = emptyList(),
@@ -29,11 +31,6 @@ data class MainUiState(
     val soundSettings: SoundSettings = SoundSettings()
 )
 
-data class SoundSettings(
-    val isHighUrgencyEnabled: Boolean = true,
-    val isMediumUrgencyEnabled: Boolean = true,
-    val isLowUrgencyEnabled: Boolean = true
-)
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val soundRepository = SoundRepository()
@@ -91,30 +88,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
 
         val settings = _soundSettings.value
-        val shouldVibrate = when (urgency) {
-            Urgency.HIGH -> settings.isHighUrgencyEnabled
-            Urgency.MEDIUM -> settings.isMediumUrgencyEnabled
-            Urgency.LOW -> settings.isLowUrgencyEnabled
+        val urgencySetting = when (urgency) {
+            Urgency.HIGH -> settings.highUrgency
+            Urgency.MEDIUM -> settings.mediumUrgency
+            Urgency.LOW -> settings.lowUrgency
         }
 
-        if (shouldVibrate) {
-            vibrationHelper.vibrate(urgency)
-        }
+        if (urgencySetting.isEnabled) {
+            vibrationHelper.vibrate(urgencySetting.vibrationPattern)
 
-        // Update sound events list (keep events within last 1 hour)
-        val currentEvents = uiState.value.soundEvents
-        val oneHourAgo = System.currentTimeMillis() - 3600000 // 1 hour in millis
-        val updatedEvents = (listOf(newEvent) + currentEvents).filter { it.id > oneHourAgo }
-        
-        // We need to update the state. Since uiState is a combine of flows, we need a way to emit this.
-        // The current architecture uses SoundRepository. Let's modify SoundRepository or just use a MutableStateFlow for sounds in VM.
-        // For simplicity in this refactor, let's override the sound list in the UI state directly or add a local flow.
-        // Wait, uiState is derived from soundRepository.getSoundEvents().
-        // I should update SoundRepository to accept new events or mock it here.
-        // Let's add a method to SoundRepository to add an event? No, it's a mock repo.
-        // Let's change the logic: MainViewModel should manage the source of truth for sounds now.
-        
-        _soundEventsFlow.value = updatedEvents
+            // Update sound events list (keep events within last 1 hour)
+            val currentEvents = uiState.value.soundEvents
+            val oneHourAgo = System.currentTimeMillis() - 3600000 // 1 hour in millis
+            val updatedEvents = (listOf(newEvent) + currentEvents).filter { it.id > oneHourAgo }
+
+            _soundEventsFlow.value = updatedEvents
+        } else {
+            // Update sound events list (just filter old events)
+            val currentEvents = uiState.value.soundEvents
+            val oneHourAgo = System.currentTimeMillis() - 3600000 // 1 hour in millis
+            val updatedEvents = currentEvents.filter { it.id > oneHourAgo }
+
+            _soundEventsFlow.value = updatedEvents
+        }
     }
 
     // We need to replace the repository flow with a local flow

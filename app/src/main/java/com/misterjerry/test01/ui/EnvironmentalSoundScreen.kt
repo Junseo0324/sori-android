@@ -44,10 +44,14 @@ import com.misterjerry.test01.ui.theme.ErrorColor
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Switch
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.misterjerry.test01.data.SoundSettings
+import com.misterjerry.test01.data.UrgencySetting
+import com.misterjerry.test01.data.VibrationPattern
 import com.misterjerry.test01.ui.theme.LightTextPrimary
 import com.misterjerry.test01.ui.theme.SafeColor
 import com.misterjerry.test01.ui.theme.SurfaceColor
@@ -57,6 +61,7 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
@@ -175,41 +180,32 @@ fun SoundSettingsDialog(
     onDismiss: () -> Unit,
     onConfirm: (SoundSettings) -> Unit
 ) {
-    var highEnabled by remember { mutableStateOf(currentSettings.isHighUrgencyEnabled) }
-    var mediumEnabled by remember { mutableStateOf(currentSettings.isMediumUrgencyEnabled) }
-    var lowEnabled by remember { mutableStateOf(currentSettings.isLowUrgencyEnabled) }
+    var highSetting by remember { mutableStateOf(currentSettings.highUrgency) }
+    var mediumSetting by remember { mutableStateOf(currentSettings.mediumUrgency) }
+    var lowSetting by remember { mutableStateOf(currentSettings.lowUrgency) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = "알림 설정") },
         text = {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "위험 (HIGH) 알림")
-                    Switch(checked = highEnabled, onCheckedChange = { highEnabled = it })
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "주의 (MEDIUM) 알림")
-                    Switch(checked = mediumEnabled, onCheckedChange = { mediumEnabled = it })
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "일상 (LOW) 알림")
-                    Switch(checked = lowEnabled, onCheckedChange = { lowEnabled = it })
-                }
+            Column(modifier = Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState())) {
+                UrgencySettingItem(
+                    title = "위험 알림",
+                    setting = highSetting,
+                    onSettingChange = { highSetting = it }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                UrgencySettingItem(
+                    title = "주의 알림",
+                    setting = mediumSetting,
+                    onSettingChange = { mediumSetting = it }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                UrgencySettingItem(
+                    title = "일상 알림",
+                    setting = lowSetting,
+                    onSettingChange = { lowSetting = it }
+                )
             }
         },
         confirmButton = {
@@ -217,9 +213,9 @@ fun SoundSettingsDialog(
                 onClick = {
                     onConfirm(
                         SoundSettings(
-                            isHighUrgencyEnabled = highEnabled,
-                            isMediumUrgencyEnabled = mediumEnabled,
-                            isLowUrgencyEnabled = lowEnabled
+                            highUrgency = highSetting,
+                            mediumUrgency = mediumSetting,
+                            lowUrgency = lowSetting
                         )
                     )
                 }
@@ -233,6 +229,57 @@ fun SoundSettingsDialog(
             }
         }
     )
+}
+
+@Composable
+fun UrgencySettingItem(
+    title: String,
+    setting: UrgencySetting,
+    onSettingChange: (UrgencySetting) -> Unit
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = title, fontWeight = FontWeight.Bold)
+            Switch(
+                checked = setting.isEnabled,
+                onCheckedChange = { onSettingChange(setting.copy(isEnabled = it)) }
+            )
+        }
+        
+        if (setting.isEnabled) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "진동 패턴", style = MaterialTheme.typography.bodyMedium)
+            Row(modifier = Modifier.fillMaxWidth()) {
+                VibrationPattern.values().forEach { pattern ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        RadioButton(
+                            selected = setting.vibrationPattern == pattern,
+                            onClick = { onSettingChange(setting.copy(vibrationPattern = pattern)) }
+                        )
+                        Text(
+                            text = pattern.label,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
+                }
+            }
+        } else {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "알림이 꺼져 있습니다.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+        }
+    }
 }
 
 @Composable
